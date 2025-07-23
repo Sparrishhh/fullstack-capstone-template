@@ -1,40 +1,56 @@
-require('dotenv').config();
-const { MongoClient } = require('mongodb');
-const fs = require('fs');
-const path = require('path');
+    require('dotenv').config();
+    const express = require('express');
+    const cors = require('cors');
+    const pinoLogger = require('./logger');
 
-async function main() {
-  const uri = process.env.MONGO_URL;
-  if (!uri) {
-    console.error('MONGO_URL is not set in .env');
-    process.exit(1);
-  }
+    const connectToDatabase = require('./models/db');
+    const {loadData} = require("./util/import-mongo/index");
 
-  const client = new MongoClient(uri);
 
-  try {
-    await client.connect();
+    const app = express();
+    app.use("*",cors());
+    const port = 3060;
 
-    const db = client.db('giftlink');
-    const collection = db.collection('gifts');
+    // Connect to MongoDB; we just do this one time
+    connectToDatabase().then(() => {
+        pinoLogger.info('Connected to DB');
+    })
+        .catch((e) => console.error('Failed to connect to DB', e));
 
-    // Read gifts.json
-    const filePath = path.join(__dirname, 'gifts.json');
-    const data = fs.readFileSync(filePath, 'utf8');
-    const json = JSON.parse(data);
 
-    // Extract array of gift documents inside "docs"
-    const gifts = json.docs;
+    app.use(express.json());
 
-    // Insert documents
-    const result = await collection.insertMany(gifts);
-    console.log(`Inserted documents: ${result.insertedCount}`);
+    // Route files
+    // Gift API Task 1: import the giftRoutes and store in a constant called giftroutes
+    const giftRoutes = require('./routes/giftRoutes');
 
-  } catch (err) {
-    console.error('Error importing gifts:', err);
-  } finally {
-    await client.close();
-  }
-}
+    // Search API Task 1: import the searchRoutes and store in a constant called searchRoutes
+    //{{insert code here}}
 
-main();
+
+    const pinoHttp = require('pino-http');
+    const logger = require('./logger');
+
+    app.use(pinoHttp({ logger }));
+
+    // Use Routes
+    // Gift API Task 2: add the giftRoutes to the server by using the app.use() method.
+    app.use('/api/gifts', giftRoutes);
+
+    // Search API Task 2: add the searchRoutes to the server by using the app.use() method.
+    //{{insert code here}}
+
+
+    // Global Error Handler
+    app.use((err, req, res, next) => {
+        console.error(err);
+        res.status(500).send('Internal Server Error');
+    });
+
+    app.get("/",(req,res)=>{
+        res.send("Inside the server")
+    })
+
+    app.listen(port, () => {
+        console.log(`Server running on port ${port}`);
+    });
