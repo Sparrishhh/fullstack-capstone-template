@@ -1,50 +1,54 @@
 require('dotenv').config();
-const MongoClient = require('mongodb').MongoClient;
-const fs = require('fs');
+const express = require('express');
+const axios = require('axios');
+const logger = require('./logger');
+const expressPino = require('express-pino-logger')({ logger });
+const natural = require("natural");
 
-// MongoDB connection URL with authentication options
-let url = `${process.env.MONGO_URL}`;
-let filename = `${__dirname}/gifts.json`;
-const dbName = 'giftdb';
-const collectionName = 'gifts';
+const app = express();
+const port = process.env.PORT || 3000;
 
-// notice you have to load the array of gifts into the data object
-const data = JSON.parse(fs.readFileSync(filename, 'utf8')).docs;
+app.use(express.json());
+app.use(expressPino);
 
-// connect to database and insert data into the collection
-async function loadData() {
-    const client = new MongoClient(url);
+// Define the sentiment analysis route
+app.post('/sentiment', async (req, res) => {
+    const { sentence } = req.query;
 
-    try {
-        // Connect to the MongoDB client
-        await client.connect();
-        console.log("Connected successfully to server");
 
-        // database will be created if it does not exist
-        const db = client.db(dbName);
-
-        // collection will be created if it does not exist
-        const collection = db.collection(collectionName);
-        let cursor = await collection.find({});
-        let documents = await cursor.toArray();
-
-        if(documents.length == 0) {
-            // Insert data into the collection
-            const insertResult = await collection.insertMany(data);
-            console.log('Inserted documents:', insertResult.insertedCount);
-        } else {
-            console.log("Gifts already exists in DB")
-        }
-    } catch (err) {
-        console.error(err);
-    } finally {
-        // Close the connection
-        await client.close();
+    if (!sentence) {
+        logger.error('No sentence provided');
+        return res.status(400).json({ error: 'No sentence provided' });
     }
-}
 
-loadData();
+    // Initialize the sentiment analyzer with the Natural's PorterStemmer and "English" language
+    const Analyzer = natural.SentimentAnalyzer;
+    const stemmer = natural.PorterStemmer;
+    const analyzer = new Analyzer("English", stemmer, "afinn");
 
-module.exports = {
-    loadData,
-  };
+    // Perform sentiment analysis
+    try {
+        const analysisResult = analyzer.getSentiment(sentence.split(' '));
+
+        let sentiment = "neutral";
+
+        if (analysisResult < 0) {
+            sentiment = "negative";
+        } else if (analysisResult > 0.33) {
+            sentiment = "positive";
+        }
+
+        // Logging the result
+        logger.info(`Sentiment analysis result: ${analysisResult}`);
+        // Responding with the sentiment analysis result
+        res.status(200).json({ sentimentScore: analysisResult, sentiment: sentiment });
+    } catch (error) {
+        logger.error(`Error performing sentiment analysis: ${error}`);
+        res.status(500).json({ message: 'Error performing sentiment analysis' });
+    }
+});
+
+// Start the server
+app.listen(port, () => {
+    logger.info(`Server running on port ${port}`);
+});
