@@ -9,18 +9,19 @@ function DetailsPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-	useEffect(() => {
+    useEffect(() => {
         const authenticationToken = sessionStorage.getItem('auth-token');
         if (!authenticationToken) {
-			// Task 1: Check for authentication and redirect
-            {{insert code here}}
+            // Task 1: Check for authentication and redirect
+            navigate('/app/login');
+            return; // Stop execution here if not authenticated
         }
 
         // get the gift to be rendered on the details page
         const fetchGift = async () => {
             try {
-				// Task 2: Fetch gift details
-                const response ={{insert code here}}
+                // Task 2: Fetch gift details
+                const response = await fetch(`/api/gifts/${productId}`);
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
@@ -35,18 +36,18 @@ function DetailsPage() {
 
         fetchGift();
 
-		// Task 3: Scroll to top on component mount
-		{{ insert code here }}
+        // Task 3: Scroll to top on component mount
+        window.scrollTo(0, 0);
 
-    }, [productId]);
+    }, [productId, navigate]);
 
 
+    // Task 4: Handle back click
     const handleBackClick = () => {
-		// Task 4: Handle back click
-		{{ insert code here }}
-	};
+        navigate(-1);  // Go back one page
+    };
 
-	//The comments have been hardcoded for this project.
+    // Hardcoded comments
     const comments = [
         {
             author: "John Doe",
@@ -70,12 +71,11 @@ function DetailsPage() {
         }
     ];
 
-
     if (loading) return <div>Loading...</div>;
     if (error) return <div>Error: {error}</div>;
     if (!gift) return <div>Gift not found</div>;
 
-return (
+    return (
         <div className="container mt-5">
             <button className="btn btn-secondary mb-3" onClick={handleBackClick}>Back</button>
             <div className="card product-details-card">
@@ -85,34 +85,24 @@ return (
                 <div className="card-body">
                     <div className="image-placeholder-large">
                         {gift.image ? (
-			// Task 5: Display gift image
-			/*insert code here*/
+                            // Task 5: Display gift image
+                            <img src={gift.image} alt={gift.name} className="img-fluid" />
                         ) : (
                             <div className="no-image-available-large">No Image Available</div>
                         )}
                     </div>
-                    // Task 6: Display gift details
-                    	<p><strong>Category:</strong> 
-				{/* insert code here  */}
-			</p>
-                    	<p><strong>Condition:</strong> 
-				{/* insert code here  */}
-                    	</p>
-                    	<p><strong>Date Added:</strong> 
-				{/* insert code here  */}
-                        </p>
-                    	<p><strong>Age (Years):</strong> 
-				{/* insert code here  */}
-                    	</p>
-                    	<p><strong>Description:</strong> 
-				{/* insert code here  */}
-                    	</p>
+                    {/* Task 6: Display gift details */}
+                    <p><strong>Category:</strong> {gift.category}</p>
+                    <p><strong>Condition:</strong> {gift.condition}</p>
+                    <p><strong>Date Added:</strong> {new Date(gift.dateAdded).toLocaleDateString()}</p>
+                    <p><strong>Age (Years):</strong> {gift.age}</p>
+                    <p><strong>Description:</strong> {gift.description}</p>
                 </div>
             </div>
             <div className="comments-section mt-4">
                 <h3 className="mb-3">Comments</h3>
-				// Task 7: Render comments section by using the map function to go through all the comments
-				{{ insert code here }} => (
+                {/* Task 7: Render comments section */}
+                {comments.map((comment, index) => (
                     <div key={index} className="card mb-3">
                         <div className="card-body">
                             <p className="comment-author"><strong>{comment.author}:</strong></p>

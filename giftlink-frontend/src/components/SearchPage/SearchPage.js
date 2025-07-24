@@ -1,29 +1,32 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import urlConfig from '../../config/urlConfig'; // Adjust path as needed
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { urlConfig } from '../../config';
 
-const categories = ['Toys', 'Books', 'Games', 'Electronics']; // Replace with actual categories from your backend or config
-const conditions = ['New', 'Used', 'Refurbished']; // Replace with actual conditions
+const categories = ['Toys', 'Books', 'Games', 'Electronics']; // Update as needed
+const conditions = ['New', 'Used', 'Refurbished']; // Update as needed
 
 function SearchPage() {
   const navigate = useNavigate();
 
-  // Task 1: State variables
+  // State variables
   const [searchQuery, setSearchQuery] = useState('');
-  const [ageRange, setAgeRange] = useState(6);
+  const [ageRange, setAgeRange] = useState(10); // example max age 10
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedCondition, setSelectedCondition] = useState('');
   const [searchResults, setSearchResults] = useState([]);
 
-  // Task 2 & 9: Fetch search results
+  // Fetch search results based on filters
   const handleSearch = async () => {
-    const baseUrl = `${urlConfig.backendUrl}/api/search?`;
-    const queryParams = new URLSearchParams({
-      name: searchQuery,
-      age_years: ageRange,
-      category: document.getElementById('categorySelect').value,
-      condition: document.getElementById('conditionSelect').value,
-    }).toString();
-
     try {
+      const baseUrl = `${urlConfig.backendUrl}/api/search?`;
+      const queryParams = new URLSearchParams({
+        name: searchQuery,
+        age_years: ageRange,
+        category: selectedCategory,
+        condition: selectedCondition,
+      }).toString();
+
       const response = await fetch(`${baseUrl}${queryParams}`);
       if (!response.ok) {
         throw new Error('Search failed');
@@ -36,15 +39,15 @@ function SearchPage() {
     }
   };
 
-  // Task 8: Navigate to details page
+  // Navigate to product details page
   const goToDetailsPage = (productId) => {
     navigate(`/app/product/${productId}`);
   };
 
   return (
     <div className="container mt-4">
-      {/* Task 10: Text input for search */}
-      <div className="form-group">
+      {/* Search input */}
+      <div className="form-group mb-3">
         <label htmlFor="searchInput">Search</label>
         <input
           id="searchInput"
@@ -56,10 +59,15 @@ function SearchPage() {
         />
       </div>
 
-      {/* Task 3: Category dropdown */}
-      <div className="form-group">
+      {/* Category dropdown */}
+      <div className="form-group mb-3">
         <label htmlFor="categorySelect">Category</label>
-        <select id="categorySelect" className="form-control my-1">
+        <select
+          id="categorySelect"
+          className="form-control"
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+        >
           <option value="">All</option>
           {categories.map((category) => (
             <option key={category} value={category}>{category}</option>
@@ -67,10 +75,15 @@ function SearchPage() {
         </select>
       </div>
 
-      {/* Task 3: Condition dropdown */}
-      <div className="form-group">
+      {/* Condition dropdown */}
+      <div className="form-group mb-3">
         <label htmlFor="conditionSelect">Condition</label>
-        <select id="conditionSelect" className="form-control my-1">
+        <select
+          id="conditionSelect"
+          className="form-control"
+          value={selectedCondition}
+          onChange={(e) => setSelectedCondition(e.target.value)}
+        >
           <option value="">All</option>
           {conditions.map((condition) => (
             <option key={condition} value={condition}>{condition}</option>
@@ -78,28 +91,30 @@ function SearchPage() {
         </select>
       </div>
 
-      {/* Task 4: Age range slider */}
-      <div className="form-group">
+      {/* Age range slider */}
+      <div className="form-group mb-3">
         <label htmlFor="ageRange">Less than {ageRange} years</label>
         <input
           id="ageRange"
           type="range"
           className="form-control-range"
           min="1"
-          max="10"
+          max="50"
           value={ageRange}
           onChange={(e) => setAgeRange(e.target.value)}
         />
       </div>
 
-      {/* Task 11: Search button */}
-      <button className="btn btn-primary mb-3" onClick={handleSearch}>Search</button>
+      {/* Search button */}
+      <button className="btn btn-primary mb-3" onClick={handleSearch}>
+        Search
+      </button>
 
-      {/* Task 5: Display results or empty message */}
-      <div className="search-results mt-4">
+      {/* Search results */}
+      <div className="search-results">
         {searchResults.length > 0 ? (
           searchResults.map((product) => (
-            <div key={product.id} className="card mb-3">
+            <div key={product.id || product._id} className="card mb-3">
               {product.image && (
                 <img src={product.image} alt={product.name} className="card-img-top" />
               )}
@@ -108,7 +123,7 @@ function SearchPage() {
                 <p className="card-text">{product.description?.slice(0, 100)}...</p>
               </div>
               <div className="card-footer">
-                <button onClick={() => goToDetailsPage(product.id)} className="btn btn-primary">
+                <button onClick={() => goToDetailsPage(product.id || product._id)} className="btn btn-primary">
                   View More
                 </button>
               </div>
