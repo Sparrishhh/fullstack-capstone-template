@@ -1,23 +1,40 @@
 // db.js
 require('dotenv').config();
-const MongoClient = require('mongodb').MongoClient;
+const { MongoClient } = require('mongodb');
 
-// MongoDB connection URL with authentication options
-let url = `${process.env.MONGO_URL}`;
+// Get the MongoDB connection URL from the .env file
+const url = process.env.MONGO_URL;
+
+// Show a clear error if the environment variable is missing
+if (!url) {
+  console.error("❌ MONGO_URL is not defined in your .env file. Exiting...");
+  process.exit(1);
+}
 
 let dbInstance = null;
-const dbName = "giftdb";
+const dbName = "giftdb"; // Change this if your database is named differently
 
 async function connectToDatabase() {
-    if (dbInstance){
-        return dbInstance
-    };
+  if (dbInstance) {
+    return dbInstance;
+  }
 
-    const client = new MongoClient(url);
+  try {
+    const client = new MongoClient(url, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    });
 
     await client.connect();
+    console.log("✅ Connected to MongoDB successfully.");
+
     dbInstance = client.db(dbName);
     return dbInstance;
+
+  } catch (error) {
+    console.error("❌ Failed to connect to MongoDB:", error);
+    throw error;
+  }
 }
 
 module.exports = connectToDatabase;
