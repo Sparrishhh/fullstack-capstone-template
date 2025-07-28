@@ -68,44 +68,49 @@ function MainPage() {
                 <p>No gifts found. Please check your backend or add some gifts.</p>
             )}
             <div className="row">
-                {gifts.map((gift) => (
-                    <div key={gift.id} className="col-md-4 mb-4">
-                        <div className="card product-card h-100">
-                            <div className="image-placeholder" style={{ height: '200px', overflow: 'hidden' }}>
-                                {gift.image ? (
-                                    <img
-                                        src={gift.image}
-                                        alt={gift.name}
-                                        className="card-img-top"
-                                        style={{ objectFit: 'cover', width: '100%', height: '100%' }}
-                                    />
-                                ) : (
-                                    <div
-                                        className="d-flex justify-content-center align-items-center h-100 text-muted"
-                                        style={{ backgroundColor: '#f0f0f0' }}
+                {gifts.map((gift) => {
+                    const giftId = gift._id || gift.id;
+                    const imageUrl = gift.image && (gift.image.startsWith('http') ? gift.image : `${urlConfig.backendUrl}${gift.image}`);
+
+                    return (
+                        <div key={giftId} className="col-md-4 mb-4">
+                            <div className="card product-card h-100">
+                                <div className="image-placeholder" style={{ height: '200px', overflow: 'hidden' }}>
+                                    {imageUrl ? (
+                                        <img
+                                            src={imageUrl}
+                                            alt={gift.name}
+                                            className="card-img-top"
+                                            style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                                        />
+                                    ) : (
+                                        <div
+                                            className="d-flex justify-content-center align-items-center h-100 text-muted"
+                                            style={{ backgroundColor: '#f0f0f0' }}
+                                        >
+                                            No Image Available
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="card-body">
+                                    <h5 className="card-title">{gift.name}</h5>
+                                    <p className={`card-text ${getConditionClass(gift.condition)}`}>
+                                        {gift.condition}
+                                    </p>
+                                    <p className="card-text date-added">{formatDate(gift.date_added)}</p>
+                                </div>
+                                <div className="card-footer bg-transparent">
+                                    <button
+                                        onClick={() => goToDetailsPage(giftId)}
+                                        className="btn btn-primary w-100"
                                     >
-                                        No Image Available
-                                    </div>
-                                )}
-                            </div>
-                            <div className="card-body">
-                                <h5 className="card-title">{gift.name}</h5>
-                                <p className={`card-text ${getConditionClass(gift.condition)}`}>
-                                    {gift.condition}
-                                </p>
-                                <p className="card-text date-added">{formatDate(gift.date_added)}</p>
-                            </div>
-                            <div className="card-footer bg-transparent">
-                                <button
-                                    onClick={() => goToDetailsPage(gift.id)}
-                                    className="btn btn-primary w-100"
-                                >
-                                    View Details
-                                </button>
+                                        View Details
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );
