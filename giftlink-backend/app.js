@@ -2,6 +2,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const pinoLogger = require('./logger');
 const connectToDatabase = require('./models/db');
 
@@ -13,6 +14,9 @@ app.use(cors());
 
 // Built-in JSON middleware
 app.use(express.json());
+
+// Serve static files from the 'images' folder
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 // Setup pino HTTP logger middleware early
 const pinoHttp = require('pino-http');
