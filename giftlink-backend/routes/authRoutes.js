@@ -130,4 +130,77 @@ router.post(
   }
 );
 
+// UPDATE route
+router.put(
+  '/update',
+  [
+    // Input validation - customize fields you want to allow updating
+    body('firstName').optional().isString().withMessage('First name must be a string'),
+    body('lastName').optional().isString().withMessage('Last name must be a string'),
+    body('password').optional().isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+  ],
+  async (req, res) => {
+    try {
+      // Validate input
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        logger.error('Validation errors in update request', errors.array());
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      // Check if email is present in headers
+      const email = req.headers.email;
+      if (!email) {
+        logger.error('Email not found in the request headers');
+        return res.status(400).json({ error: 'Email not found in the request headers' });
+      }
+
+      // Connect to MongoDB
+      const db = await connectToDatabase();
+      const collection = db.collection('users');
+
+      // Find existing user
+      const existingUser = await collection.findOne({ email });
+      if (!existingUser) {
+        logger.error(`User with email ${email} not found`);
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Update fields from req.body if provided
+      if (req.body.firstName !== undefined) existingUser.firstName = req.body.firstName;
+      if (req.body.lastName !== undefined) existingUser.lastName = req.body.lastName;
+
+      // If password update provided, hash it
+      if (req.body.password !== undefined) {
+        const salt = await bcryptjs.genSalt(10);
+        const hashedPassword = await bcryptjs.hash(req.body.password, salt);
+        existingUser.password = hashedPassword;
+      }
+
+      existingUser.updatedAt = new Date();
+
+      // Update user in DB and get updated document
+      const updatedUserResult = await collection.findOneAndUpdate(
+        { email },
+        { $set: existingUser },
+        { returnDocument: 'after' }
+      );
+      const updatedUser = updatedUserResult.value;
+
+      // Create new JWT token
+      const payload = {
+        user: {
+          id: updatedUser._id.toString(),
+        },
+      };
+      const authtoken = jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' });
+
+      res.json({ authtoken });
+    } catch (e) {
+      logger.error('Error in /update route:', e);
+      return res.status(500).send('Internal server error');
+    }
+  }
+);
+
 module.exports = router;
