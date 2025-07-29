@@ -70,7 +70,12 @@ function MainPage() {
             <div className="row">
                 {gifts.map((gift) => {
                     const giftId = gift._id || gift.id;
-                    const imageUrl = gift.image && (gift.image.startsWith('http') ? gift.image : `${urlConfig.backendUrl}${gift.image}`);
+                    // Image URL: if it starts with http use as is, else prefix /images/
+                    const imageUrl = gift.image
+                        ? gift.image.startsWith('http')
+                            ? gift.image
+                            : `/images/${gift.image}`
+                        : null;
 
                     return (
                         <div key={giftId} className="col-md-4 mb-4">
