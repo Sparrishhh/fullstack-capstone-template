@@ -22,6 +22,21 @@ app.use('/images', express.static(path.join(__dirname, 'images')));
 const pinoHttp = require('pino-http');
 app.use(pinoHttp({ logger: pinoLogger }));
 
+// Route files
+const giftRoutes = require('./routes/giftRoutes');
+const searchRoutes = require('./routes/searchRoutes');
+const authRoutes = require('./routes/authRoutes'); // <-- Import authRoutes here
+
+// Mount routes
+app.use('/api/gifts', giftRoutes);
+app.use('/api/search', searchRoutes);
+app.use('/api/auth', authRoutes); // <-- Use authRoutes at /api/auth
+
+// Simple root route to confirm server is alive
+app.get('/', (req, res) => {
+  res.send('Backend server is running');
+});
+
 // Connect to MongoDB once before accepting requests
 connectToDatabase()
   .then(() => {
@@ -35,19 +50,6 @@ connectToDatabase()
     console.error('❌ Failed to connect to DB:', e);
     process.exit(1); // Exit if DB connection fails
   });
-
-// Route files
-const giftRoutes = require('./routes/giftRoutes');
-const searchRoutes = require('./routes/searchRoutes');
-
-// Mount routes
-app.use('/api/gifts', giftRoutes);
-app.use('/api/search', searchRoutes);
-
-// Simple root route to confirm server is alive
-app.get('/', (req, res) => {
-  res.send('Backend server is running');
-});
 
 // Global error handler to catch all errors and respond with JSON
 app.use((err, req, res, next) => {
