@@ -73,4 +73,61 @@ router.post(
   }
 );
 
+// LOGIN route
+router.post(
+  '/login',
+  // Validate input
+  body('email').isEmail().withMessage('Must be a valid email'),
+  body('password').exists().withMessage('Password is required'),
+
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      logger.error('Validation errors during login:', errors.array());
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+      // Connect to database
+      const db = await connectToDatabase();
+
+      // Access users collection
+      const collection = db.collection('users');
+
+      // Find user by email
+      const theUser = await collection.findOne({ email: req.body.email });
+
+      if (!theUser) {
+        logger.error('User not found:', req.body.email);
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Compare passwords
+      const passwordMatch = await bcryptjs.compare(req.body.password, theUser.password);
+      if (!passwordMatch) {
+        logger.error('Passwords do not match for user:', req.body.email);
+        return res.status(401).json({ error: 'Wrong password' });
+      }
+
+      // Fetch user details
+      const userName = theUser.firstName || '';
+      const userEmail = theUser.email;
+
+      // Create JWT payload and token
+      const payload = {
+        user: {
+          id: theUser._id.toString(),
+        },
+      };
+      const authtoken = jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' });
+
+      // Send response
+      res.json({ authtoken, userName, userEmail });
+    } catch (error) {
+      logger.error('Error during user login:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+);
+
 module.exports = router;
