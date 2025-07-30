@@ -42,10 +42,10 @@ connectToDatabase()
   .then(() => {
     pinoLogger.info('✅ Connected to MongoDB');
     // Start the server only after DB is connected
-    app.listen(port, () => {
-      console.log(`🚀 Server running on port ${port}`);
-    });
-  })
+    app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
+
   .catch((e) => {
     console.error('❌ Failed to connect to DB:', e);
     process.exit(1); // Exit if DB connection fails
