@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import LandingPage from './components/LandingPage/LandingPage';  // <-- Added import
+import LandingPage from './components/LandingPage/LandingPage';
 import MainPage from './components/MainPage/MainPage';
 import LoginPage from './components/LoginPage/LoginPage';
 import RegisterPage from './components/RegisterPage/RegisterPage';
@@ -15,8 +15,10 @@ function App() {
     <>
       <Navbar />
       <Routes>
-        {/* Show LandingPage at root */}
+        {/* Landing page at root '/' */}
         <Route path="/" element={<LandingPage />} />
+
+        {/* Main app pages under '/app' */}
         <Route path="/app" element={<MainPage />} />
         <Route path="/app/login" element={<LoginPage />} />
         <Route path="/app/register" element={<RegisterPage />} />
