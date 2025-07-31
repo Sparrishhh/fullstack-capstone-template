@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { urlConfig } from '../../config';
+import React, { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+// Removed unused import: urlConfig
 import { useAppContext } from '../../context/AuthContext';
 
 export default function Navbar() {
@@ -10,6 +10,7 @@ export default function Navbar() {
   useEffect(() => {
     const authTokenFromSession = sessionStorage.getItem('auth-token');
     const nameFromSession = sessionStorage.getItem('name');
+
     if (authTokenFromSession) {
       if (isLoggedIn && nameFromSession) {
         setUserName(nameFromSession);
@@ -38,8 +39,15 @@ export default function Navbar() {
     <nav className="navbar navbar-expand-lg navbar-light bg-light" id="navbar_container">
       <Link className="navbar-brand" to="/">GiftLink</Link>
 
-      <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <button
+        className="navbar-toggler"
+        type="button"
+        data-toggle="collapse"
+        data-target="#navbarNav"
+        aria-controls="navbarNav"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
         <span className="navbar-toggler-icon"></span>
       </button>
 
@@ -55,21 +63,31 @@ export default function Navbar() {
           {isLoggedIn ? (
             <>
               <li className="nav-item">
-                <span className="nav-link" style={{ color: "black", cursor: "pointer" }} onClick={profileSection}>
+                <span
+                  className="nav-link"
+                  style={{ color: "black", cursor: "pointer" }}
+                  onClick={profileSection}
+                >
                   Welcome, {userName}
                 </span>
               </li>
               <li className="nav-item">
-                <button className="nav-link login-btn" onClick={handleLogout}>Logout</button>
+                <button className="nav-link login-btn" onClick={handleLogout}>
+                  Logout
+                </button>
               </li>
             </>
           ) : (
             <>
               <li className="nav-item">
-                <Link className="nav-link login-btn" to="/app/login">Login</Link>
+                <Link className="nav-link login-btn" to="/app/login">
+                  Login
+                </Link>
               </li>
               <li className="nav-item">
-                <Link className="nav-link register-btn" to="/app/register">Register</Link>
+                <Link className="nav-link register-btn" to="/app/register">
+                  Register
+                </Link>
               </li>
             </>
           )}
