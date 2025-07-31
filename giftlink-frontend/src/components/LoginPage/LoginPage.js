@@ -24,10 +24,22 @@ function LoginPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': bearerToken ? `Bearer ${bearerToken}` : '',
+          // Removed Authorization header here intentionally for login
         },
         body: JSON.stringify({ email, password }),
       });
+
+      if (!response.ok) {
+        let errorMsg = response.statusText;
+        try {
+          const errorJson = await response.json();
+          errorMsg = errorJson.error || JSON.stringify(errorJson);
+        } catch {
+          // ignore JSON parse errors here
+        }
+        setIncorrect(`Login failed: ${errorMsg}`);
+        return;
+      }
 
       const json = await response.json();
 
@@ -38,13 +50,13 @@ function LoginPage() {
         setIsLoggedIn(true);
         navigate('/app');
       } else {
+        setIncorrect('Wrong password. Try again.');
         setEmail('');
         setPassword('');
-        setIncorrect('Wrong password. Try again.');
         setTimeout(() => setIncorrect(''), 2000);
       }
     } catch (e) {
-      console.error('Error fetching details:', e.message);
+      console.error('Error fetching details:', e);
       setIncorrect('An error occurred during login');
     }
   };
